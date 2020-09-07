@@ -1,0 +1,20 @@
+"addon"
+{
+	"Unassigned"      								"Unassigned Team"
+	"Spectator"       								"Spectator Team"
+	"Neutrals"        								"Neutral Team"
+	"NoTeam"          								"No Team"
+
+	"DOTA_GoodGuys"   								"?"
+	"DOTA_BadGuys"    								"!"
+	"DOTA_Custom1"    								"Knuck1"
+	"DOTA_Custom2"    								"Kuck"
+	"DOTA_Custom3"    								"Chuck"
+	"DOTA_Custom4"    								"Puck"
+	"DOTA_Custom5"    								"KnuckKnuck"
+	"DOTA_Custom6"    								"Kucky"
+	"DOTA_Custom7"    								"Knucka"
+	"DOTA_Custom8"    								"Knuc"
+	
+	"addonname"										"Snapfire Wars"
+}
