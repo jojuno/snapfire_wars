@@ -7,14 +7,14 @@
 
 	"DOTA_GoodGuys"   								"?"
 	"DOTA_BadGuys"    								"!"
-	"DOTA_Custom1"    								"Knuck1"
-	"DOTA_Custom2"    								"Kuck"
-	"DOTA_Custom3"    								"Chuck"
-	"DOTA_Custom4"    								"Puck"
-	"DOTA_Custom5"    								"KnuckKnuck"
-	"DOTA_Custom6"    								"Kucky"
-	"DOTA_Custom7"    								"Knucka"
-	"DOTA_Custom8"    								"Knuc"
+	"DOTA_Custom1"    								"Blue Team"
+	"DOTA_Custom2"    								"Red Team"
+	"DOTA_Custom3"    								"Pink Team"
+	"DOTA_Custom4"    								"Green Team"
+	"DOTA_Custom5"    								"Brown Team"
+	"DOTA_Custom6"    								"Cyan Team"
+	"DOTA_Custom7"    								"Olive Team"
+	"DOTA_Custom8"    								"Purple Team"
 	
 	"addonname"										"Snapfire Wars"
 }

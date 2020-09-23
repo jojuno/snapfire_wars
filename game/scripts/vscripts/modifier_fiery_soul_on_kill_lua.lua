@@ -85,8 +85,8 @@ function modifier_fiery_soul_on_kill_lua:OnHeroKilled( params )
 			end
 
             local attacker = params.attacker
-            local target = params.target
-			if params.unit ~= target and params.unit:GetUnitName() == "npc_dota_hero_snapfire" and target:GetUnitName() == "npc_dota_hero_snapfire" then
+			local target = params.target
+			if params.unit ~= target then
 				if self:GetStackCount() < self.fiery_soul_on_kill_max_stacks then
 					self:IncrementStackCount()
 				else

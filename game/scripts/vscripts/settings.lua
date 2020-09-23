@@ -5,11 +5,11 @@ ENABLE_HERO_RESPAWN = false             -- Should the heroes automatically respa
 UNIVERSAL_SHOP_MODE = false             -- Should the main shop contain Secret Shop items as well as regular items
 ALLOW_SAME_HERO_SELECTION = true        -- Should we let people select the same hero as each other
 
-HERO_SELECTION_TIME = 0             -- How long should we let people select their hero?
+HERO_SELECTION_TIME = 10             -- How long should we let people select their hero?
 -- set to 5 for building
 PRE_GAME_TIME = 30              -- How long after people select their heroes should the horn blow and the game start?
 POST_GAME_TIME = 60.0                   -- How long should we let people look at the scoreboard before closing the server automatically?
-TREE_REGROW_TIME = 60.0                 -- How long should it take individual trees to respawn after being cut down/destroyed?
+TREE_REGROW_TIME = 30.0                 -- How long should it take individual trees to respawn after being cut down/destroyed?
 
 GOLD_PER_TICK = 0                     -- How much gold should players get per tick?
 GOLD_TICK_TIME = 5                      -- How long should we wait in seconds between gold ticks?
@@ -59,8 +59,8 @@ HIDE_KILL_BANNERS = false               -- Should we hide the kill banners that 
 LOSE_GOLD_ON_DEATH = true               -- Should we have players lose the normal amount of dota gold on death?
 SHOW_ONLY_PLAYER_INVENTORY = false      -- Should we only allow players to see their own inventory even when selecting other units?
 DISABLE_STASH_PURCHASING = false        -- Should we prevent players from being able to buy items into their stash when not at a shop?
-DISABLE_ANNOUNCER = true              -- Should we disable the announcer from working in the game?
-FORCE_PICKED_HERO = "npc_dota_hero_snapfire"                -- What hero should we force all players to spawn as? (e.g. "npc_dota_hero_axe").  Use nil to allow players to pick their own hero.
+DISABLE_ANNOUNCER = false              -- Should we disable the announcer from working in the game?
+FORCE_PICKED_HERO = "npc_dota_hero_snapfire"               -- What hero should we force all players to spawn as? (e.g. "npc_dota_hero_axe").  Use nil to allow players to pick their own hero.
 
 FIXED_RESPAWN_TIME = 3                 -- What time should we use for a fixed respawn timer?  Use -1 to keep the default dota behavior.
 FOUNTAIN_CONSTANT_MANA_REGEN = -1       -- What should we use for the constant fountain mana regen?  Use -1 to keep the default dota behavior.
@@ -72,7 +72,7 @@ MINIMUM_ATTACK_SPEED = 20               -- What should we use for the minimum at
 GAME_END_DELAY = -1                     -- How long should we wait after the game winner is set to display the victory banner and End Screen?  Use -1 to keep the default (about 10 seconds)
 VICTORY_MESSAGE_DURATION = 1            -- How long should we wait after the victory message displays to show the End Screen?  Use 
 STARTING_GOLD = 0                     -- How much starting gold should we give to each player?
-DISABLE_DAY_NIGHT_CYCLE = true        -- Should we disable the day night cycle from naturally occurring? (Manual adjustment still possible)
+DISABLE_DAY_NIGHT_CYCLE = false       -- Should we disable the day night cycle from naturally occurring? (Manual adjustment still possible)
 DISABLE_KILLING_SPREE_ANNOUNCER = false -- Shuold we disable the killing spree announcer?
 DISABLE_STICKY_ITEM = false             -- Should we disable the sticky item button in the quick buy area?
 SKIP_TEAM_SETUP = false                 -- Should we skip the team setup entirely?
@@ -90,6 +90,7 @@ ENABLED_RUNES[DOTA_RUNE_INVISIBILITY] = true
 ENABLED_RUNES[DOTA_RUNE_REGENERATION] = true
 ENABLED_RUNES[DOTA_RUNE_BOUNTY] = true
 ENABLED_RUNES[DOTA_RUNE_ARCANE] = true
+IMBA_RUNE_SYSTEM = false
 
 
 MAX_NUMBER_OF_TEAMS = 13               -- How many potential teams can be in this game mode?
@@ -100,14 +101,14 @@ USE_CUSTOM_TEAM_COLORS_FOR_PLAYERS = true          -- Should we use custom team 
 TEAM_COLORS = {}                        -- If USE_CUSTOM_TEAM_COLORS is set, use these colors.
 TEAM_COLORS[DOTA_TEAM_GOODGUYS] = { 61, 210, 150 }  --    Teal
 TEAM_COLORS[DOTA_TEAM_BADGUYS]  = { 243, 201, 9 }   --    Yellow
-TEAM_COLORS[DOTA_TEAM_CUSTOM_1] = { 52, 85, 255 }  --    Blue
+TEAM_COLORS[DOTA_TEAM_CUSTOM_1] = { 0, 0, 255 }  --    Blue
 TEAM_COLORS[DOTA_TEAM_CUSTOM_2] = { 255, 0, 0 }   --    Red
-TEAM_COLORS[DOTA_TEAM_CUSTOM_3] = { 197, 77, 168 }   --   Pink 
-TEAM_COLORS[DOTA_TEAM_CUSTOM_4] = { 101, 212, 19 }  --    Green
-TEAM_COLORS[DOTA_TEAM_CUSTOM_5] = { 129, 83, 54 }   --    Brown
-TEAM_COLORS[DOTA_TEAM_CUSTOM_6] = { 27, 192, 216 }  --    Cyan
-TEAM_COLORS[DOTA_TEAM_CUSTOM_7] = { 199, 228, 13 }  --    Olive
-TEAM_COLORS[DOTA_TEAM_CUSTOM_8] = { 140, 42, 244 }  --    Purple
+TEAM_COLORS[DOTA_TEAM_CUSTOM_3] = { 255, 192, 203 }   --   Pink 
+TEAM_COLORS[DOTA_TEAM_CUSTOM_4] = { 0, 255, 0 }  --    Green
+TEAM_COLORS[DOTA_TEAM_CUSTOM_5] = { 165, 42, 42 }   --    Brown
+TEAM_COLORS[DOTA_TEAM_CUSTOM_6] = { 0, 191, 255 }  --    Cyan
+TEAM_COLORS[DOTA_TEAM_CUSTOM_7] = { 128, 128, 0 }  --    Olive
+TEAM_COLORS[DOTA_TEAM_CUSTOM_8] = { 128, 0, 128 }  --    Purple
 
 
 USE_AUTOMATIC_PLAYERS_PER_TEAM = false  -- Should we set the number of players to 10 / MAX_NUMBER_OF_TEAMS?
@@ -115,11 +116,11 @@ USE_AUTOMATIC_PLAYERS_PER_TEAM = false  -- Should we set the number of players t
 CUSTOM_TEAM_PLAYER_COUNT = {}           -- If we're not automatically setting the number of players per team, use this table
 CUSTOM_TEAM_PLAYER_COUNT[DOTA_TEAM_GOODGUYS] = 0
 CUSTOM_TEAM_PLAYER_COUNT[DOTA_TEAM_BADGUYS]  = 0
-CUSTOM_TEAM_PLAYER_COUNT[DOTA_TEAM_CUSTOM_1] = 2
-CUSTOM_TEAM_PLAYER_COUNT[DOTA_TEAM_CUSTOM_2] = 2
-CUSTOM_TEAM_PLAYER_COUNT[DOTA_TEAM_CUSTOM_3] = 2
-CUSTOM_TEAM_PLAYER_COUNT[DOTA_TEAM_CUSTOM_4] = 2
-CUSTOM_TEAM_PLAYER_COUNT[DOTA_TEAM_CUSTOM_5] = 1
-CUSTOM_TEAM_PLAYER_COUNT[DOTA_TEAM_CUSTOM_6] = 1
-CUSTOM_TEAM_PLAYER_COUNT[DOTA_TEAM_CUSTOM_7] = 1
-CUSTOM_TEAM_PLAYER_COUNT[DOTA_TEAM_CUSTOM_8] = 1
+CUSTOM_TEAM_PLAYER_COUNT[DOTA_TEAM_CUSTOM_1] = 4
+CUSTOM_TEAM_PLAYER_COUNT[DOTA_TEAM_CUSTOM_2] = 4
+CUSTOM_TEAM_PLAYER_COUNT[DOTA_TEAM_CUSTOM_3] = 4
+CUSTOM_TEAM_PLAYER_COUNT[DOTA_TEAM_CUSTOM_4] = 4
+CUSTOM_TEAM_PLAYER_COUNT[DOTA_TEAM_CUSTOM_5] = 4
+CUSTOM_TEAM_PLAYER_COUNT[DOTA_TEAM_CUSTOM_6] = 4
+CUSTOM_TEAM_PLAYER_COUNT[DOTA_TEAM_CUSTOM_7] = 4
+CUSTOM_TEAM_PLAYER_COUNT[DOTA_TEAM_CUSTOM_8] = 4

@@ -577,6 +577,9 @@ end
 function GameMode:On_game_rules_state_change(data)
   print("[BAREBONES] game_rules_state_change")
   PrintTable(data)
+  if GameRules:State_Get() == DOTA_GAMERULES_STATE_HERO_SELECTION then
+    HeroSelection:Start()
+  end
 end
 
 
@@ -973,6 +976,9 @@ end
 function GameMode:On_game_rules_state_change(data)
   print("[BAREBONES] game_rules_state_change")
   PrintTable(data)
+  if GameRules:State_Get() == DOTA_GAMERULES_STATE_HERO_SELECTION then
+    HeroSelection:Start()
+  end
 end
 
 
