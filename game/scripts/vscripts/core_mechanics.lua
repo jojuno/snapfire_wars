@@ -1,65 +1,73 @@
 -- This function runs to save the location and particle spawn upon hero killed
 function GameMode:HeroKilled(hero, attacker, ability)
-    hero.isAlive = false
     if GameMode.pregameActive then
         if GameMode.pregameBuffer == false then
             Timers:CreateTimer({
-                endTime = 1, -- when this timer should first execute, you can omit this if you want it to run first on the next frame
+                endTime = 1, -- respawn in 1 second
                 callback = function()
                     --start the next round
                     GameMode:Restore(hero)
-                    hero.isAlive = true
                 end
             })
-        end            
+        end
     elseif GameMode.tiebreakerActive then
-        GameMode.numAlive = GameMode.numAlive - 1
-        if GameMode.numAlive == 1 then
-            for playerID = 0, 9 do
-                if PlayerResource:IsValidPlayerID(playerID) then
-                    if GameMode.playerEnts[playerID]["hero"].isAlive == true then
-                        GameMode.roundActive = false
-                        GameMode.playerEnts[playerID]["hero"].score = GameMode.playerEnts[playerID]["hero"].score + 1
-                        GameRules:SetCustomVictoryMessage(string.format("%s wins!", PlayerResource:GetPlayerName(playerID)))
-                        --end game
-                        GameRules:SetGameWinner(GameMode.playerEnts[playerID]["hero"]:GetTeamNumber())
-                        GameRules:SetSafeToLeave(true)
-                        break
-                    end
-                end
-            end
+        --check if there is only one team remaining
+        if GameMode:CheckWinningTeam() ~= 0 then
+            local winningTeamNumber = GameMode:CheckWinningTeam()
+            GameMode.roundActive = false
+            GameMode.teams[winningTeamNumber].score = GameMode.teams[winningTeamNumber].score + 1
+            GameRules:SetCustomVictoryMessage(string.format("%s wins!", GameMode.teamNames[winningTeamNumber]))
+            --end game
+            GameRules:SetGameWinner(winningTeamNumber)
+            GameRules:SetSafeToLeave(true)
         end
     elseif GameMode.roundActive then
-        --local item = CreateItem("item_gem", hero, hero)
-        --hero:AddItem(item)
-        print("[GameMode:HeroKilled] number of players alive: " .. GameMode.numAlive)
-        GameMode.numAlive = GameMode.numAlive - 1
-        
-        print("[GameMode:HeroKilled] number of players alive after subtracting 1: " .. GameMode.numAlive)
-        if GameMode.numAlive == 1 then
+        print("[GameMode:HeroKilled] GameMode.roundActive")
+        if GameMode:CheckWinningTeam() ~= 0 then
+            print("[GameMode:HeroKilled] GameMode:CheckWinningTeam() ~= 0")
             local damageList = {}
             local damageRanking = {}
             --assign scores
             --one for most damage dealt
-            --make a list of damage dealt for everyone for the round
-            for playerID = 0, 9 do
-                --check if playerID exists
-                if PlayerResource:IsValidPlayerID(playerID) then
-                    --calculate the damage dealt for every hero against each other
-                    local damageDoneTotal = 0
-                    local damageDonePrev = GameMode.playerEnts[playerID]["hero"].damageDealt
-                    for victimID = 0, 9 do
-                        if PlayerResource:IsValidPlayerID(victimID) then
-                            if victimID == playerID then goto continue
-                            else
-                                damageDoneTotal = damageDoneTotal + PlayerResource:GetDamageDoneToHero(playerID, victimID)
+            --make a list of damage dealt for every team for the round
+            for teamNumber = 6, 13 do
+                if GameMode.teams[teamNumber] ~= nil then
+                    local teamDamageDoneTotal = 0
+                    local teamDamageDoneThisRound = 0
+                    for playerID = 0, GameMode.maxNumPlayers do
+                        if GameMode.teams[teamNumber][playerID] ~= nil then
+                            local playerDamageDoneTotal = 0
+                            local playerDamageDonePrev = 0 
+                            local playerDamageDoneThisRound = 0
+                            playerDamageDonePrev = GameMode.teams[teamNumber][playerID].totalDamageDealt
+                            --calculate the damage dealt for every team against each other
+                            --damage dealt for pregame
+                            for victimTeamNumber = 6, 13 do
+                                if GameMode.teams[victimTeamNumber] ~= nil then
+                                    if victimTeamNumber == teamNumber then goto continue
+                                    else
+                                        for victimID = 0, GameMode.maxNumPlayers do
+                                            if GameMode.teams[victimTeamNumber][victimID] ~= nil then
+                                                playerDamageDoneTotal = playerDamageDoneTotal + PlayerResource:GetDamageDoneToHero(playerID, victimID)
+                                            end
+                                        end
+                                    end
+                                    ::continue::
+                                end
                             end
-                            ::continue::
+                            --playerDamageDoneThisRound = playerDamageDoneTotal - playerDamageDonePrev
+                            --assign playerDamageDoneTotal to GameMode.teams[teamNumber][playerID].totalDamageDealt
+                            --add playerDamageDoneTotal to teamDamageDoneTotal
+                            --add playerDamageDoneThisRound to teamDamageDoneThisRound
+                            playerDamageDoneThisRound = playerDamageDoneTotal - playerDamageDonePrev
+                            GameMode.teams[teamNumber][playerID].totalDamageDealt = playerDamageDoneTotal
+                            teamDamageDoneTotal = teamDamageDoneTotal + playerDamageDoneTotal
+                            teamDamageDoneThisRound = teamDamageDoneThisRound + playerDamageDoneThisRound
                         end
-                    end
-                    GameMode.playerEnts[playerID]["hero"].damageDealt = damageDoneTotal
-                    local damageDoneThisRound = damageDoneTotal - damageDonePrev
-                    damageList[playerID] = damageDoneThisRound
+                    end    
+                    --assign teamDamageDoneTotal to GameMode.teams[teamNumber].totalDamageDealt
+                    GameMode.teams[teamNumber].totalDamageDealt = teamDamageDoneTotal
+                    damageList[teamNumber] = teamDamageDoneThisRound
                 end
             end
             
@@ -98,13 +106,14 @@ function GameMode:HeroKilled(hero, attacker, ability)
             local topDamage = damageList[damageRanking[1]]
             Notifications:BottomToAll({text="Most damage dealt: ", duration= 5.0, style={["font-size"] = "35px", color = "white"}})
             local firstLine = true
-            for playerID in pairs(damageList) do
-                if damageList[playerID] == topDamage then
-                    GameMode.playerEnts[playerID]["hero"].score = GameMode.playerEnts[playerID]["hero"].score + 1
-                    Notifications:BottomToAll({text=string.format("%s, ", PlayerResource:GetPlayerName(playerID)), duration= 5.0, style={["font-size"] = "35px", color = "red"}, continue = not firstLine})
-                    Notifications:BottomToAll({text=string.format("total: %s ", GameMode.playerEnts[playerID]["hero"].score), duration= 5.0, style={["font-size"] = "35px", color = "white"}, continue = true})
-                
-                    firstLine = false
+            for teamNumber = 6, 13 do
+                if GameMode.teams[teamNumber] ~= nil then
+                    if damageList[teamNumber] == topDamage then
+                        GameMode.teams[teamNumber].score = GameMode.teams[teamNumber].score + 1
+                        Notifications:BottomToAll({text=string.format("%s, ", GameMode.teamNames[teamNumber]), duration= 5.0, style={["font-size"] = "35px", color = "red"}, continue = not firstLine})
+                        Notifications:BottomToAll({text=string.format("total: %s ", GameMode.teams[teamNumber].score), duration= 5.0, style={["font-size"] = "35px", color = "white"}, continue = true})
+                        firstLine = false
+                    end
                 end
             end
 
@@ -112,78 +121,96 @@ function GameMode:HeroKilled(hero, attacker, ability)
 
 
             --one for most kills
-            local killList = {}
-            local killRanking = {}
-            for playerID = 0, 9 do
-                --check if playerID exists
-                if PlayerResource:IsValidPlayerID(playerID) then
-                    --calculate the damage dealt for every hero against each other
-                    local killsThisRound = 0
-                    local killsPrev = GameMode.playerEnts[playerID]["hero"].kills
-                    killsThisRound = PlayerResource:GetKills(playerID) - killsPrev
-                    GameMode.playerEnts[playerID]["hero"].kills = PlayerResource:GetKills(playerID)
-                    killList[playerID] = killsThisRound
+            local killsList = {}
+            local killsRanking = {}
+            for teamNumber = 6, 13 do
+                if GameMode.teams[teamNumber] ~= nil then
+                    local teamKillsTotal = 0
+                    local teamKillsThisRound = 0
+                    for playerID  = 0, GameMode.maxNumPlayers do
+                        if GameMode.teams[teamNumber][playerID] ~= nil then
+                            local playerKillsTotal = 0
+                            local playerKillsPrev = 0 
+                            local playerKillsThisRound = 0
+                            playerKillsPrev = GameMode.teams[teamNumber][playerID].totalKills
+                            --playerDamageDoneThisRound = playerDamageDoneTotal - playerDamageDonePrev
+                            --assign playerDamageDoneTotal to GameMode.teams[teamNumber][playerID].totalDamageDealt
+                            --add playerDamageDoneTotal to teamDamageDoneTotal
+                            --add playerDamageDoneThisRound to teamDamageDoneThisRound
+                            playerKillsThisRound = PlayerResource:GetKills(playerID) - playerKillsPrev
+                            GameMode.teams[teamNumber][playerID].totalKills = PlayerResource:GetKills(playerID)
+                            teamKillsTotal = teamKillsTotal + PlayerResource:GetKills(playerID)
+                            teamKillsThisRound = teamKillsThisRound + playerKillsThisRound
+                        end
+                    end
+                    --assign teamDamageDoneTotal to GameMode.teams[teamNumber].totalDamageDealt
+                    GameMode.teams[teamNumber].totalKills = teamKillsTotal
+                    killsList[teamNumber] = teamKillsThisRound
                 end
             end
 
             -- this uses a custom sorting function ordering by kills, descending
             local rank = 1
-            for k,v in spairs(killList, function(t,a,b) return t[b] < t[a] end) do
-                killRanking[rank] = k 
+            for k,v in spairs(killsList, function(t,a,b) return t[b] < t[a] end) do
+                killsRanking[rank] = k 
                 rank = rank + 1
             end
-            local topKill = killList[killRanking[1]]
+            local topKills = killsList[killsRanking[1]]
             Notifications:BottomToAll({text="Most kills: ", duration= 5.0, style={["font-size"] = "35px", color = "white"}})
             firstLine = true
-            for playerID in pairs(killList) do
-                if killList[playerID] == topKill then
-                    GameMode.playerEnts[playerID]["hero"].score = GameMode.playerEnts[playerID]["hero"].score + 1
-                    
-                    Notifications:BottomToAll({text=string.format("%s, ", PlayerResource:GetPlayerName(playerID)), duration= 5.0, style={["font-size"] = "35px", color = "red"}, continue = not firstLine})
-                    Notifications:BottomToAll({text=string.format("total: %s ", GameMode.playerEnts[playerID]["hero"].score, GameMode.playerEnts[playerID]["hero"].score), duration= 5.0, style={["font-size"] = "35px", color = "white"}, continue = true})
-                    firstLine = false
-                end
-            end
-
-
-
-            --one for being the last man standing
-            --find who's still alive
-            for playerID = 0, 9 do
-                if PlayerResource:IsValidPlayerID(playerID) then
-                    if GameMode.playerEnts[playerID]["hero"].isAlive == true then
-                        GameMode.roundActive = false
-                        GameMode.playerEnts[playerID]["hero"].score = GameMode.playerEnts[playerID]["hero"].score + 1
-                        Notifications:BottomToAll({text="Last Man Standing: ", duration= 5.0, style={["font-size"] = "35px", color = "white"}})
-                        Notifications:BottomToAll({text=string.format("%s, ", PlayerResource:GetPlayerName(playerID)), duration= 5.0, style={["font-size"] = "35px", color = "red"}})
-                        Notifications:BottomToAll({text=string.format("total: %s", GameMode.playerEnts[playerID]["hero"].score), duration= 5.0, style={["font-size"] = "35px", color = "white"}, continue = true})
-                        break
+            for teamNumber = 6, 13 do
+                if GameMode.teams[teamNumber] ~= nil then
+                    if killsList[teamNumber] == topKills then
+                        GameMode.teams[teamNumber].score = GameMode.teams[teamNumber].score + 1
+                        Notifications:BottomToAll({text=string.format("%s, ", GameMode.teamNames[teamNumber]), duration= 5.0, style={["font-size"] = "35px", color = "red"}, continue = not firstLine})
+                        Notifications:BottomToAll({text=string.format("total: %s ", GameMode.teams[teamNumber].score), duration= 5.0, style={["font-size"] = "35px", color = "white"}, continue = true})
+                        firstLine = false
                     end
                 end
             end
+
+
+
+            --one for being the last team standing
+            GameMode.roundActive = false
+            local remainingTeamNumber = GameMode:CheckWinningTeam()
+            GameMode.teams[remainingTeamNumber].score = GameMode.teams[remainingTeamNumber].score + 1
+            Notifications:BottomToAll({text="Last Team Standing: ", duration= 5.0, style={["font-size"] = "35px", color = "white"}})
+            Notifications:BottomToAll({text=string.format("%s, ", GameMode.teamNames[remainingTeamNumber]), duration= 5.0, style={["font-size"] = "35px", color = "red"}})
+            Notifications:BottomToAll({text=string.format("total: %s", GameMode.teams[remainingTeamNumber].score), duration= 5.0, style={["font-size"] = "35px", color = "white"}, continue = true})
+
             local winners = {}
             local numWinners = 0
-            for playerID = 0, 9 do
-                if PlayerResource:IsValidPlayerID(playerID) then
-                    if GameMode.playerEnts[playerID]["hero"].score >= 7 then
-                        winners[playerID] = {}
+            for teamNumber = 6, 13 do
+                if GameMode.teams[teamNumber] ~= nil then
+                    if GameMode.teams[teamNumber].score >= GameMode.pointsToWin then
+                        winners[teamNumber] = GameMode.teams[teamNumber]
                         numWinners = numWinners + 1
-                        winners[playerID]["hero"] = GameMode.playerEnts[playerID]["hero"]
                     end
                 end
             end
+
+            --[[for teamNumber = 6, 13 do
+                if GameMode.teams[teamNumber] ~= nil then
+                    for playerID  = 0, 7 do
+                        if GameMode.teams[teamNumber][playerID] ~= nil then
+                            GameMode.teams[teamNumber][playerID].hero:AddParticle(ACT_DOTA_TAUNT)
+                        end
+                    end
+                end
+            end]]
 
             --tiebreaker
             if numWinners > 1 then
                 Notifications:BottomToAll({text="There's a tie!", duration= 5.0, style={["font-size"] = "45px", color = "red"}})
-                for playerID = 0, 9 do
+                for playerID = 0, GameMode.maxNumPlayers do
                     if PlayerResource:IsValidPlayerID(playerID) then
                       heroEntity = PlayerResource:GetSelectedHeroEntity(playerID)
                       heroEntity:ForceKill(true)
                     end
                 end
 
-                GameMode.numPlayers = numWinners
+                --GameMode.numTeams = numWinners
                 --delay 5 seconds
                 GameMode.tiebreakerActive = true
                 Timers:CreateTimer({
@@ -195,17 +222,13 @@ function GameMode:HeroKilled(hero, attacker, ability)
                 })
             --one winner
             elseif numWinners == 1 then
-                print("there is one winner!")
-                
-                PrintTable(winners)
-                --ipairs doesn't work
-                --perhaps it can't start from 0, which is the first playerID
-                for playerID in pairs(winners) do 
-                    print("in the for loop for the winners block")
-                    GameRules:SetCustomVictoryMessage(string.format("%s wins!", PlayerResource:GetPlayerName(playerID)))
-                    --end game
-                    GameRules:SetGameWinner(GameMode.playerEnts[playerID]["hero"]:GetTeamNumber())
-                    GameRules:SetSafeToLeave(true)
+                for teamNumber = 6, 13 do
+                    if winners[teamNumber] ~= nil then
+                        GameRules:SetCustomVictoryMessage(string.format("%s wins!", GameMode.teamNames[teamNumber]))
+                        --end game
+                        GameRules:SetGameWinner(teamNumber)
+                        GameRules:SetSafeToLeave(true)
+                    end
                 end
             --no winners
             else
@@ -214,26 +237,73 @@ function GameMode:HeroKilled(hero, attacker, ability)
                     endTime = 5, -- when this timer should first execute, you can omit this if you want it to run first on the next frame
                     callback = function()
                         --start the next round
-                        GameMode:RoundStart(GameMode.playerEnts)
+                        GameMode:RoundStart(GameMode.teams)
                     end
                 })
             end
         end
     end
     -- A timer running every second that starts 5 seconds in the future, respects pauses
-    Timers:CreateTimer(0, function()
-        if hero.isAlive == false then
-            AddFOWViewer(hero:GetTeamNumber(), hero:GetAbsOrigin(), 10000, 1, false )
-            local centerVectorEnt = Entities:FindByName(nil, "island_center")
+    -- if hero:HasAbility("true_sight") then
+    --     print("[GameMode:HeroKilled] this hero has true_sight")
+    -- else
+    --     print("[GameMode:HeroKilled] this hero does not have true_sight")
+    -- end
 
-            -- GetAbsOrigin() is a function that can be called on any entity to get its location
-            local centerVector = centerVectorEnt:GetAbsOrigin()
-            hero:SetAbsOrigin(centerVector)
-            return 1.0
-        else
-            return nil
+    --check if all of the hero's teammates are dead
+    local teammateAlive = false
+    for playerID = 0, GameMode.maxNumPlayers do
+        if GameMode.teams[hero:GetTeamNumber()][playerID] ~= nil then
+            if GameMode.teams[hero:GetTeamNumber()][playerID].hero:IsAlive() then
+                teammateAlive = true
+            end
+        end
+    end
+
+
+    --reset true_sight if everyone's dead
+    Timers:CreateTimer({
+                callback = function()
+                    if teammateAlive then
+                        
+                    else
+                        for playerID = 0, GameMode.maxNumPlayers do
+                            if GameMode.teams[hero:GetTeamNumber()][playerID] ~= nil then
+                                print("[GameMode:HeroKilled] 1, about to add true_sight")
+                                GameMode.teams[hero:GetTeamNumber()][playerID].hero:AddAbility("true_sight")
+                            end
+                        end
+                    end
+                end
+    })
+
+    Timers:CreateTimer(0, function()
+        --check if the hero is alive because this process will continue indefinitely unless stopped
+        if hero:IsAlive() == false then
+        --[[local teammateAlive = false
+        if hero:IsAlive() == false then
+            for playerID = 0, GameMode.maxNumPlayers do
+                if GameMode.teams[hero:GetTeamNumber()][playerID] ~= nil then
+                    if GameMode.teams[hero:GetTeamNumber()][playerID].hero:IsAlive() then
+                        teammateAlive = true
+                    end
+                end
+            end]]
+            if teammateAlive then
+                return nil
+            else
+                local centerVectorEnt = Entities:FindByName(nil, "island_center")
+                local centerVector = centerVectorEnt:GetAbsOrigin()
+                hero:SetAbsOrigin(centerVector)
+                AddFOWViewer(hero:GetTeamNumber(), hero:GetAbsOrigin(), 10000, 1, false )
+                --[[for playerID = 0, GameMode.maxNumPlayers do
+                    if GameMode.teams[hero:GetTeamNumber()][playerID] ~= nil then
+                        print("[GameMode:HeroKilled] about to add true_sight")
+                        GameMode.teams[hero:GetTeamNumber()][playerID].hero:AddAbility("true_sight")
+                    end
+                end]]
+                return 1.0
+            end
         end
     end)
-    --get a list of players who are dead
-    --apply "makeVisibletoTeam" to the players who are alive
 end

@@ -17,7 +17,7 @@
                 </Panel>
                 <Panel id="RightSide">
                     <Panel id="TopSide">
-                        <Label id="ScoreTitle" />
+                        <Label id="ScoreTitle" text = "Sample Score Title"/>
                     </Panel>
                     <Panel id="BottomSide">
                         <Panel id="Background" />
