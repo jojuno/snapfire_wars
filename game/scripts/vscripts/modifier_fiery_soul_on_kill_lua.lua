@@ -60,6 +60,7 @@ function modifier_fiery_soul_on_kill_lua:OnIntervalThink()
 	if IsServer() then
 		self:StartIntervalThink( -1 )
 		self:SetStackCount( 0 )
+		--ParticleManager:DestroyParticle(self.nFXIndex, false)
 	end
 end
 
@@ -114,6 +115,7 @@ function modifier_fiery_soul_on_kill_lua:OnDeath( params )
 	end
 	return 0
 end
+
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

@@ -1,0 +1,8 @@
+Version 2.1
+-voting on mode/points: decided by majority vote
+-added new mode: Deathmatch
+--play to kill. no rounds. first one to set points wins.
+--respawn at a random location on death after 3 seconds
+--invulnerable for the first 2 seconds on respawn
+--runes spawn randomly in the beginning and every minute thereafter
+-points options have been changed to 10/20/30 points

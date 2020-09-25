@@ -12,13 +12,13 @@ var type_details = [
 
 var points_details = [
   {
-    name: "#points_7",
+    name: "#points_10",
   },
   {
-    name: "#points_14",
+    name: "#points_20",
   },
   {
-    name: "#points_21",
+    name: "#points_30",
   },
 ];
 var hero_details = [
@@ -165,7 +165,7 @@ function OnHeroMouseOut(index) {
 }
 
 function OnSelectType() {
-  var type_options = ["battleRoyal", "deathMatch"];
+  var type_options = ["battleRoyale", "deathMatch"];
   var payload = {
     type: type_options[typeIndex],
   };
@@ -175,7 +175,7 @@ function OnSelectType() {
 }
 
 function OnSelectPoints() {
-  var points_options = [7, 14, 21];
+  var points_options = [10, 20, 30];
 
   var payload = {
     points: points_options[pointsIndex],

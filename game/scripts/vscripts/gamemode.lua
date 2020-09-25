@@ -127,7 +127,7 @@ function GameMode:OnAllPlayersLoaded()
     return math.floor(num + 0.5)
   end
 
-  local COUNT_DOWN_FROM = 45
+  local COUNT_DOWN_FROM = 40
   local endTime = round(GameRules:GetGameTime() + COUNT_DOWN_FROM)
 
   GameRules:GetGameModeEntity():SetThink(function ()
@@ -135,11 +135,18 @@ function GameMode:OnAllPlayersLoaded()
     local delta = round(endTime - GameRules:GetGameTime())
 
     --starting message
-    if delta == 44 then
+    if delta == 39 then
       EmitGlobalSound('gbuTheme')
-      Notifications:BottomToAll({text="Battle Royale" , duration= 35, style={["font-size"] = "30px", color = "white"}})
-      Notifications:BottomToAll({text="Categories: Last Team Standing, Most Damage, Most Kills" , duration= 35, style={["font-size"] = "30px", color = "white"}})
-      Notifications:BottomToAll({text="Warm Up Phase" , duration= 35, style={["font-size"] = "45px", color = "red"}})
+      -- GameMode:SpawnNeutral()
+      -- Timers:CreateTimer({
+      --   endTime = 20, -- when this timer should first execute, you can omit this if you want it to run first on the next frame
+      --   callback = function()
+      --     Notifications:BottomToAll({text="FINISH!" , duration= 35, style={["font-size"] = "30px", color = "white"}})
+      --   end
+      -- })
+      --Notifications:BottomToAll({text="Battle Royale" , duration= 39, style={["font-size"] = "30px", color = "white"}})
+      --Notifications:BottomToAll({text="Categories: Last Team Standing, Most Damage, Most Kills" , duration= 39, style={["font-size"] = "30px", color = "white"}})
+      Notifications:BottomToAll({text="Warm Up Phase" , duration= 30, style={["font-size"] = "45px", color = "red"}})
       --[[local top_leftVectorEnt = Entities:FindByName(nil, "top_left")
       -- GetAbsOrigin() is a function that can be called on any entity to get its location
       local top_leftVector = top_leftVectorEnt:GetAbsOrigin()
@@ -342,8 +349,8 @@ function GameMode:OnAllPlayersLoaded()
             --assign teamKillsTotal to GameMode.teams[teamNumber].totalKills
             GameMode.teams[teamNumber].totalKills = teamKillsTotal
         end
-    end
-    return 5
+      end
+      return 5
 
 
     --play the starting sound
@@ -351,12 +358,18 @@ function GameMode:OnAllPlayersLoaded()
     --rank them in descending order 
     --highest rank gets placed first; lowest rank gets placed last at the starting line
     elseif delta == 4 then
-      EmitGlobalSound('snapfireOlympics.introAndBackground3')
       GameMode.pregameActive = false
       GameMode.pregameBuffer = false
-      GameRules:SetHeroRespawnEnabled( false )
-      GameMode:RoundStart(GameMode.teams)
+      --set up death match mode
+      if GameMode.type == "deathMatch" then
+        GameMode:DeathMatchStart()
+
+      else
+        GameRules:SetHeroRespawnEnabled( false )
+        GameMode:RoundStart(GameMode.teams)
+      end
       return 4
+    
     elseif delta == 0 then
     end
   end)
@@ -545,6 +558,18 @@ function GameMode:SetUpRunes()
         GameMode.arcaneRunes[4] = GameMode:SpawnRune(DOTA_RUNE_ARCANE, item_x, item_y)
 end
 
+function GameMode:RemoveRunes()
+  for i = 0, 4 do
+    UTIL_Remove(GameMode.items[i])
+  end
+  for i = 0, 4 do
+    UTIL_Remove(GameMode.ddRunes[i])
+  end
+  for i = 0, 4 do
+    UTIL_Remove(GameMode.arcaneRunes[i])
+  end
+end
+
 --[[
   This function is called once and only once for every player when they spawn into the game for the first time.  It is also called
   if the player's hero is replaced with a new hero for any reason.  This function is useful for initializing heroes, such as adding
@@ -635,7 +660,9 @@ function GameMode:OnHeroInGame(hero)
     GameMode.teams[hero:GetTeamNumber()].score = 0
     GameMode.teams[hero:GetTeamNumber()].remaining = true
     GameMode.teams[hero:GetTeamNumber()].totalDamageDealt = true
+    --deprecate
     GameMode.teams[hero:GetTeamNumber()].totalKills = true
+    GameMode.teams[hero:GetTeamNumber()].wanted = false
   end
   GameMode.teams[hero:GetTeamNumber()][hero:GetPlayerID()] = {}
   GameMode.teams[hero:GetTeamNumber()][hero:GetPlayerID()].hero = hero
@@ -713,21 +740,26 @@ function GameMode:InitGameMode()
   GameMode.ddRunes = {}
   GameMode.arcaneRunes = {}
   GameMode.maxNumPlayers = 16
-  GameMode.pointsToWin = 0
+  --default = 7
+  GameMode.pointsToWin = 10
   GameMode.pointsVote = {}
   --for testing
-  GameMode.pointsVote[7] = 2
-  GameMode.pointsVote[14] = 1
-  GameMode.pointsNumVoted = 3
-  --GameMode.numVoted = 0
+  --GameMode.pointsVote[7] = 0
+  --GameMode.pointsVote[14] = 3
+  --GameMode.pointsNumVoted = 3
+  GameMode.pointsNumVoted = 0
   GameMode.numPlayers = 0
   GameMode.roundEnd = false
-  GameMode.type = ""
+  --default = battle royale
+  GameMode.type = "battleRoyale"
   GameMode.typeVote = {}
   --for testing
-  GameMode.typeVote["battleRoyal"] = 2
-  GameMode.typeVote["deathMatch"] = 1
-  GameMode.typeNumVoted = 3
+  --GameMode.typeVote["battleRoyale"] = 0
+  --GameMode.typeVote["deathMatch"] = 3
+  --GameMode.typeNumVoted = 3
+  GameMode.typeNumVoted = 0
+  GameMode.wantedEnabled = true
+  GameMode.firstBlood = true
   
 
 
@@ -796,18 +828,26 @@ function OnJSPlayerSelectType(event, keys)
         rank = rank + 1
     end
     local topTypeVote = GameMode.typeVote[typeVoteRanking[1]]
-    --ipairs?
-    if "battleRoyal" == topTypeVote then
-        print("[OnJSPlayerSelectType] everyone voted for the game mode inner block")
-        GameMode.type = "battleRoyal"
-        --subsequent lines get displayed below
-        Notifications:TopToAll({text=string.format("Game Mode: %s", "Battle Royale"), duration= 35.0, style={["font-size"] = "35px", color = "white"}})
-    else
-      print("[OnJSPlayerSelectType] everyone voted for the game mode inner block")
-      GameMode.type = "deathMatch"
-      Notifications:TopToAll({text=string.format("Game Mode: %s", "Death Match"), duration= 35.0, style={["font-size"] = "35px", color = "white"}})
-    end
 
+    --ipairs?
+    for type, votes in pairs(GameMode.typeVote) do
+      if GameMode.typeVote[type] == topTypeVote then
+          --GameMode.type = "battleRoyale"
+          GameMode.type = type
+          if type == "battleRoyale" then
+            Notifications:TopToAll({text="Mode: Battle Royale", duration= 35.0, style={["font-size"] = "35px", color = "white"}})
+          else
+            Notifications:TopToAll({text="Mode: Death Match", duration= 35.0, style={["font-size"] = "35px", color = "white"}})
+          end
+          --subsequent lines get displayed below
+          --Notifications:TopToAll({text=string.format("Game Mode: %s", "Battle Royale"), duration= 35.0, style={["font-size"] = "35px", color = "white"}})
+          
+        --[[else
+        print("[OnJSPlayerSelectType] everyone voted for the game mode deathMatch block")
+        GameMode.type = "deathMatch"
+        Notifications:TopToAll({text=string.format("Game Mode: %s", "Death Match"), duration= 35.0, style={["font-size"] = "35px", color = "white"}})]]
+      end
+    end
   end
 end
 
@@ -865,10 +905,11 @@ function OnJSPlayerSelectPoints(event, keys)
         rank = rank + 1
     end
     local topPointsVote = GameMode.pointsVote[pointsVoteRanking[1]]
-    for points = 7, 21, 7 do
+    for points = 10, 30, 10 do
         if GameMode.pointsVote[points] == topPointsVote then
             GameMode.pointsToWin = points
             Notifications:TopToAll({text=string.format("Number of Points to Win: %s", points), duration= 35.0, style={["font-size"] = "35px", color = "white"}})
+            break
         end
     end
 
@@ -918,7 +959,7 @@ function GameMode:ExampleConsoleCommand()
 end
 
 
---[[function GameMode:SpawnNeutral()
+function GameMode:SpawnNeutral()
   --Start an iteration finding each entity with this name
   --If you've named everything with a unique name, this will return your entity on the first go
   --dynamically assign spawn to entity location via argument passed into the function
@@ -927,16 +968,16 @@ end
 
   -- Spawn the unit at the location on the dire team
   -- if set to neutral team, when hero dies, their death timer gets added 26 seconds to the fixed resurrection time
-  local spawnedUnit = CreateUnitByName(string.format("snapfire_custom_1", spawn_name), Vector(0,0,0), true, nil, nil, DOTA_TEAM_BADGUYS)
+  local spawnedUnit = CreateUnitByName(string.format("npc_dota_warlock_golem_scepter_1", spawn_name), Vector(0,0,0), true, nil, nil, DOTA_TEAM_BADGUYS)
 
-  spawnedUnit:StartGesture(ACT_DOTA_MINI_TAUNT_SPECIAL)
+
   -- set the angle it's facing
   -- (0, 0, 0) = faces to the endzone
   --(pitch (100 = facing down), yaw (100 = facing left), roll (0 = normal))
   spawnedUnit:SetAngles(0, 0, 0)
 
-  spawnedUnit:SetThink("NeutralThinker", self)
-end]]
+
+end
 
 
 
@@ -964,6 +1005,7 @@ function GameMode:Restore(hero)
   end
 end
 
+
 --play the starting sound
 --calculate the damage dealt for every hero against each other
 --rank them in descending order
@@ -971,16 +1013,8 @@ end
 function GameMode:RoundStart(teams)
   EmitGlobalSound('snapfireOlympics.introAndBackground3')      
   GameMode.currentRound = GameMode.currentRound + 1
-  for i = 0, 4 do
-    UTIL_Remove(GameMode.items[i])
-  end
-  for i = 0, 4 do
-    UTIL_Remove(GameMode.ddRunes[i])
-  end
-  for i = 0, 4 do
-    UTIL_Remove(GameMode.arcaneRunes[i])
-  end
-  --GameMode:SpawnNeutral()
+  GameMode:RemoveRunes()
+  
   Notifications:BottomToAll({text=string.format("ROUND %s", GameMode.currentRound), duration= 5.0, style={["font-size"] = "45px", color = "white"}})  
   for teamNumber = 6, 13 do
     if teams[teamNumber] ~= nil then
@@ -1037,6 +1071,100 @@ function GameMode:RoundStart(teams)
   })
   
 end
+
+function GameMode:DeathMatchStart()
+  --intro sound
+  EmitGlobalSound('snapfireOlympics.introAndBackground3')
+  GameRules:SetHeroRespawnEnabled( true )
+  --do the announcement
+  Timers:CreateTimer({
+    callback = function()
+      Notifications:BottomToAll({text="3..." , duration= 1.0, style={["font-size"] = "45px"}})
+    end
+  })
+  Timers:CreateTimer({
+    endTime = 1, -- when this timer should first execute, you can omit this if you want it to run first on the next frame
+    callback = function()
+      Notifications:BottomToAll({text="2..." , duration= 1.0, style={["font-size"] = "45px"}})
+    end
+  })
+  Timers:CreateTimer({
+    endTime = 2, -- when this timer should first execute, you can omit this if you want it to run first on the next frame
+    callback = function()
+      Notifications:BottomToAll({text="1..." , duration= 1.0, style={["font-size"] = "45px"}})
+    end
+  })
+  Timers:CreateTimer({
+    endTime = 3, -- when this timer should first execute, you can omit this if you want it to run first on the next frame
+    callback = function()
+      Notifications:BottomToAll({text="GO!" , duration= 5.0, style={["font-size"] = "45px"}})
+    end
+  })
+  --set up runes
+  --runes every 1 minute
+  Timers:CreateTimer(0, function()
+      GameMode:RemoveRunes()
+      return 60.0
+    end
+  )
+  Timers:CreateTimer(0, function()
+      GameMode:SetUpRunes()
+      return 60.0
+    end
+  )
+  --after a certain time, remove them
+
+  --reset cooldowns
+  for teamNumber = 6, 13 do
+    if GameMode.teams[teamNumber] ~= nil then
+      for playerID = 0, GameMode.maxNumPlayers do
+        if GameMode.teams[teamNumber][playerID] ~= nil then
+          if PlayerResource:IsValidPlayerID(playerID) then
+            heroEntity = PlayerResource:GetSelectedHeroEntity(playerID)
+            print("[GameMode:RoundStart] playerID: " .. playerID)
+            for itemIndex = 0, 5 do
+              if heroEntity:GetItemInSlot(itemIndex) ~= nil then
+                heroEntity:GetItemInSlot(itemIndex):EndCooldown()
+              end
+            end
+            for abilityIndex = 0, 5 do
+              abil = heroEntity:GetAbilityByIndex(abilityIndex)
+              abil:EndCooldown()
+            end
+
+            --[[Timers:CreateTimer(function()
+              for i = 0, 10 do
+                print("[GameMode:RoundStart] hero of playerID " .. playerID .. "has a modifier: " .. heroEntity:GetModifierNameByIndex(i))
+              end
+              return 1.0
+            end)]]
+            heroEntity:Stop()
+            heroEntity:ForceKill(false)
+            GameMode:Restore(heroEntity)
+            heroEntity:AddNewModifier(nil, nil, "modifier_specially_deniable", {})
+            --set camera to hero because when the hero is relocated, the camera stays still
+            --use global variable 'PlayerResource' to call the function
+            PlayerResource:SetCameraTarget(playerID, heroEntity)
+            --must delay the undoing of the SetCameraTarget by a second; if they're back to back, the camera will not move
+            --set entity to 'nil' to undo setting the camera
+            heroEntity:AddNewModifier(nil, nil, "modifier_stunned", { duration = 4})
+          end
+        end
+      end
+    end
+  end
+  Timers:CreateTimer({
+    endTime = 1, -- when this timer should first execute, you can omit this if you want it to run first on the next frame
+    callback = function()            
+      for playerID = 0, GameMode.maxNumPlayers do
+        if PlayerResource:IsValidPlayerID(playerID) then
+          PlayerResource:SetCameraTarget(playerID, nil)
+        end
+      end
+    end
+  })
+end
+
 
 function GameMode:CheckWinningTeam()
   print("[GameMode:CheckWinningTeam] inside the function")

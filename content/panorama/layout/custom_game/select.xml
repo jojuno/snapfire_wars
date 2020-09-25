@@ -19,13 +19,13 @@
                     <Label id="PointsName" style="" />
                     <Panel id="PointsPanel" class="PointsPanel">
                         <Panel id="PointsPanel0" class="PointsPseudoImage" onactivate="OnHighlightPoints(0)" onmouseover="OnPointsMouseOver(0)" onmouseout="OnPointsMouseOut(0)">
-                            <Label class="PointsLabel" text="7"/>
+                            <Label class="PointsLabel" text="10"/>
                         </Panel>
                         <Panel id="PointsPanel1" class="PointsPseudoImage" onactivate="OnHighlightPoints(1)" onmouseover="OnPointsMouseOver(1)" onmouseout="OnPointsMouseOut(1)">
-                            <Label class="PointsLabel" text="14"/>
+                            <Label class="PointsLabel" text="20"/>
                         </Panel>
                         <Panel id="PointsPanel2" class="PointsPseudoImage" onactivate="OnHighlightPoints(2)" onmouseover="OnPointsMouseOver(2)" onmouseout="OnPointsMouseOut(2)">
-                            <Label class="PointsLabel" text="21"/>
+                            <Label class="PointsLabel" text="30"/>
                         </Panel>
                     </Panel>
                     <Panel id="PointsSelectPanel" class="PointsSelectPanel" >
