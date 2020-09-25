@@ -27,6 +27,11 @@ function GameMode:OnNPCSpawned(keys)
   DebugPrintTable(keys)
 
   local npc = EntIndexToHScript(keys.entindex)
+  
+  npc:AddNewModifier(nil, nil, "modifier_specially_deniable", {})
+  npc:AddNewModifier(nil, nil, "modifier_magic_immune", {duration = 2})
+  npc:AddNewModifier(nil, nil, "modifier_attack_immune", {duration = 2})
+
 end
 
 -- An entity somewhere has been hurt.  This event fires very often with many units so don't do too many expensive
