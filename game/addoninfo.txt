@@ -1,0 +1,14 @@
+"AddonInfo"
+{
+  "TeamCount" "10"
+  "maps"      "version_2 what_the_kuck"
+  "IsPlayable"  "1"
+  "version_2"
+  {
+          "MaxPlayers"                    "16"
+  }
+  "what_the_kuck"
+  {
+          "MaxPlayers"                    "16"
+  }
+}

@@ -1,0 +1,10 @@
+"AddonInfo"
+{
+  "TeamCount" "10"
+  "maps"      "version2.1_draft"
+  "IsPlayable"  "1"
+  "version2.1_draft"
+  {
+          "MaxPlayers"                    "16"
+  }
+}
