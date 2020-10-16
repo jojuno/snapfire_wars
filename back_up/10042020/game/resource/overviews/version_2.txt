@@ -1,0 +1,8 @@
+version_2
+{
+	material materials/overviews/version_2.vmat
+	pos_x -5836
+	pos_y 5482
+	scale 8.325
+}
+

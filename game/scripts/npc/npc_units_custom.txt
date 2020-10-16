@@ -1446,33 +1446,44 @@
     "HasInventory"                "1"
   } 
 
-  //========================================================================================================================
-// Dummy stuff
-//========================================================================================================================
-  
-  "dummy_unit"
-  {
-    "AbilityBehavior"     "DOTA_ABILITY_BEHAVIOR_PASSIVE"
-    "BaseClass"           "ability_datadriven"
-    "AbilityTextureName"            "rubick_empty1"
-    "MaxLevel"                      "1"
-    
-    "Modifiers"
+
+
+  	"dummy"
     {
-      "dummy_unit"
-      {
-          "Passive"                        "1"
-          "IsHidden"                        "1"    
-          "States"
-          {
-              "MODIFIER_STATE_UNSELECTABLE" "MODIFIER_STATE_VALUE_ENABLED"
-              "MODIFIER_STATE_INVULNERABLE"    "MODIFIER_STATE_VALUE_ENABLED"
-              "MODIFIER_STATE_NOT_ON_MINIMAP" "MODIFIER_STATE_VALUE_ENABLED"
-              "MODIFIER_STATE_NO_HEALTH_BAR"  "MODIFIER_STATE_VALUE_ENABLED"
-          }
-      }
-    }
-  }
+    // General
+    //----------------------------------------------------------------
+    "BaseClass"                     "npc_dota_creature"
+	//base model
+	//add garments with "AttachWearables"
+    "Model"                         "models/development/invisiblebox.vmdl"
+    "ModelScale"                    "3"
+	"HealthBarOffset"			"100"
+	"SoundSet"					"n_creep_Melee"
+
+    // Abilities
+    //----------------------------------------------------------------
+	//"Ability1"					"chain_cookie"
+	//"Ability2"					"snapfire_firesnap_cookie_arrow"
+	"Ability3"					"dummy_unit"
+
+	// Attack
+	//----------------------------------------------------------------
+	//"AttackCapabilities"		"DOTA_UNIT_CAP_MELEE_ATTACK"
+	//"AttackDamageMin"			"100"		// Damage range min.
+	//"AttackDamageMax"			"200"		// Damage range max.	
+	//"AttackRate"				"1.2"		// Speed of attack.
+	//"AttackAcquisitionRange"	"500"		// Range within a target can be acquired.
+	//"AttackRange"				"125"		// Range within a target can be attacked.
+	//"ProjectileModel"			"particles/units/heroes/hero_snapfire/hero_snapfire_base_attack_model.vpcf"			// Particle system model for projectile.
+	//"ProjectileSpeed"			"1000"			// Speed of projectile.	
+
+    // Movement
+    //----------------------------------------------------------------
+    //"MovementCapabilities"    "DOTA_UNIT_CAP_MOVE_FLY"
+    //"MovementSpeed"           "5000"   
+    //"MovementTurnRate"        "10" 
+	//"StatusHealth"				"500"		// Base health.
+	}
 
 	"invoker"
     {

@@ -1,6 +1,8 @@
 var typeIndex = 1;
 var pointsIndex = 1;
 var heroIndex = 0;
+var mode = "";
+var mapInfo = Game.GetMapInfo();
 var type_details = [
   {
     name: "#type_battle_royale",
@@ -12,15 +14,28 @@ var type_details = [
 
 var points_details = [
   {
-    name: "#points_10",
+    name: "#points_short",
   },
   {
-    name: "#points_20",
+    name: "#points_medium",
   },
   {
-    name: "#points_30",
+    name: "#points_long",
   },
 ];
+
+var points_details_what_the_kuck = [
+  {
+    name: "#points_short_what_the_kuck",
+  },
+  {
+    name: "#points_medium_what_the_kuck",
+  },
+  {
+    name: "#points_long_what_the_kuck",
+  },
+];
+
 var hero_details = [
   {
     name: "#npc_dota_hero_chen",
@@ -41,7 +56,7 @@ var hero_details = [
     name: "#npc_dota_hero_disruptor",
   },
   {
-    name: "#npc_dota_hero_keeper_of_the_light",
+    name: "#npc_dota_hero_abaddon",
   },
   {
     name: "#npc_dota_hero_snapfire",
@@ -55,12 +70,43 @@ function AddTypes() {
 
 function AddPoints() {
   var panel = $.CreatePanel("Panel", $("#SelectionPanel"), "");
+
   panel.BLoadLayoutSnippet("PointsSnippet");
+  //change text after it's loaded
+  if (mapInfo["map_display_name"] == "what_the_kuck") {
+    $("#PointsSelectLabel").text = $.Localize("what_the_kuck_points_select");
+  }
 }
 
 function AddCostumes() {
   var panel = $.CreatePanel("Panel", $("#SelectionPanel"), "");
   panel.BLoadLayoutSnippet("HeroSnippet");
+  if (mapInfo["map_display_name"] == "what_the_kuck") {
+    $("#HeroSelectLabel").text = $.Localize("what_the_kuck_hero_select");
+  }
+}
+
+function AddCharacters() {
+  var panel = $.CreatePanel("Panel", $("#SelectionPanel"), "");
+  panel.BLoadLayoutSnippet("WhatTheKuckHeroSnippet");
+  //find abilities panel
+  //for an ability the character has,
+  //add an ability panel
+  //var abilityPanel = panel.FindChildTraverse("AbilitiesPanel");
+  //for (var i = 0; i < 3; i++) {
+  //  AddAbility(abilityPanel);
+  //}
+  //individual point boxes are panels
+  //use tags in $.CreatePanel("xxxxx") to create different elements
+
+  if (mapInfo["map_display_name"] == "what_the_kuck") {
+    $("#HeroSelectLabel").text = $.Localize("what_the_kuck_hero_select");
+  }
+}
+
+function AddAbility(panel) {
+  var panel = $.CreatePanel("Panel", $("#AbilityPanel"), "");
+  panel.BLoadLayoutSnippet("Ability");
 }
 
 function OnTypeSelectionEnd() {
@@ -92,8 +138,13 @@ function OnHighlightType(index) {
 function OnHighlightPoints(index) {
   pointsIndex = index;
 
-  var points_detail = points_details[index];
-  $("#PointsName").text = $.Localize(points_detail.name);
+  if (mapInfo["map_display_name"] == "what_the_kuck") {
+    var points_detail_what_the_kuck = points_details_what_the_kuck[index];
+    $("#PointsName").text = $.Localize(points_detail_what_the_kuck.name);
+  } else {
+    var points_detail = points_details[index];
+    $("#PointsName").text = $.Localize(points_detail.name);
+  }
 
   //use Object.keys(hero_details).length to make it dynanic to the length of the "hero_details" dictionary
   for (var i = 0; i < Object.keys(points_details).length; i++) {
@@ -135,12 +186,21 @@ function OnTypeMouseOver(index) {
 }
 
 function OnPointsMouseOver(index) {
-  $.DispatchEvent(
-    "DOTAShowTitleTextTooltip",
-    $("#PointsPanel" + index),
-    $.Localize(points_details[index].name),
-    $.Localize(points_details[index].name + "_lore")
-  );
+  if (mapInfo["map_display_name"] == "what_the_kuck") {
+    $.DispatchEvent(
+      "DOTAShowTitleTextTooltip",
+      $("#PointsPanel" + index),
+      $.Localize(points_details_what_the_kuck[index].name),
+      $.Localize(points_details[index].name + "_lore")
+    );
+  } else {
+    $.DispatchEvent(
+      "DOTAShowTitleTextTooltip",
+      $("#PointsPanel" + index),
+      $.Localize(points_details[index].name),
+      $.Localize(points_details[index].name + "_lore")
+    );
+  }
 }
 
 function OnHeroMouseOver(index) {
@@ -175,7 +235,7 @@ function OnSelectType() {
 }
 
 function OnSelectPoints() {
-  var points_options = [10, 20, 30];
+  var points_options = ["short", "medium", "long"];
 
   var payload = {
     points: points_options[pointsIndex],
@@ -190,7 +250,11 @@ function OnSelectPoints() {
   //Game.EmitSound("Conquest.capture_point_timer.Generic");
 
   //open "custom_hero_select.xml"
-  AddCostumes();
+  if (mapInfo["map_display_name"] == "what_the_kuck") {
+    AddCharacters();
+  } else {
+    AddCostumes();
+  }
 
   OnHighlightHero(heroIndex);
 }
@@ -203,7 +267,7 @@ function OnSelectHero() {
     "npc_dota_hero_gyrocopter",
     "npc_dota_hero_luna",
     "npc_dota_hero_disruptor",
-    "npc_dota_hero_keeper_of_the_light",
+    "npc_dota_hero_abaddon",
     "npc_dota_hero_snapfire",
   ];
 
@@ -242,12 +306,24 @@ function ShowHeroSelection() {
   $("#HeroSelectRoot").visible = true;
 }
 
-function debug() {
-  AddTypes();
-  OnHighlightType(typeIndex);
-  GameEvents.Subscribe("type_selection_end", OnTypeSelectionEnd);
-  GameEvents.Subscribe("points_selection_end", OnPointsSelectionEnd);
-  GameEvents.Subscribe("hero_selection_end", OnHeroSelectionEnd);
+function RunSelect() {
+  //"map_display_name" = "what_the_kuck"
+  //if what the kuck map is picked then
+  if (mapInfo["map_display_name"] == "what_the_kuck") {
+    //display score and character selection
+    AddPoints();
+    OnHighlightPoints(pointsIndex);
+    GameEvents.Subscribe("points_selection_end", OnPointsSelectionEnd);
+    GameEvents.Subscribe("hero_selection_end", OnHeroSelectionEnd);
+  } else {
+    //display like it used to
+
+    AddTypes();
+    OnHighlightType(typeIndex);
+    GameEvents.Subscribe("type_selection_end", OnTypeSelectionEnd);
+    GameEvents.Subscribe("points_selection_end", OnPointsSelectionEnd);
+    GameEvents.Subscribe("hero_selection_end", OnHeroSelectionEnd);
+  }
 }
 
-debug();
+RunSelect();

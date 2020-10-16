@@ -1,33 +1,10 @@
-function spairs(t, order)
-    -- collect the keys
-    local keys = {}
-    for k in pairs(t) do keys[#keys+1] = k end
 
-    -- if order function given, sort by it by passing the table and keys a and b
-    -- otherwise just sort the keys 
-    if order then
-        table.sort(keys, function(a,b) return order(t, a, b) end)
-    else
-        table.sort(keys)
-    end
 
-    -- return the iterator function
-    local i = 0
-    return function()
-        i = i + 1
-        if keys[i] then
-            return keys[i], t[keys[i]]
-        end
-    end
-end
+
 
 -- This function runs to save the location and particle spawn upon hero killed
 function GameMode:HeroKilled(hero, attacker, ability)
-    --killing spree announcer
-    --first blood
-    --spree
-    --multiple
-    --ownage
+
     if GameMode.pregameActive then
         if GameMode.pregameBuffer == false then
             Timers:CreateTimer({
@@ -44,6 +21,7 @@ function GameMode:HeroKilled(hero, attacker, ability)
         local respawnPosX = math.random() + math.random(-1323, 571)
         local respawnPosY = math.random() + math.random(-1011, 826)
         hero:SetRespawnPosition(Vector(respawnPosX, respawnPosY, 128))
+        --check if there's a winner
         for teamNumber = 6, 13 do
             if GameMode.teams[teamNumber] ~= nil then 
                 if PlayerResource:GetTeamKills(teamNumber) == GameMode.pointsToWin then
@@ -96,7 +74,7 @@ function GameMode:HeroKilled(hero, attacker, ability)
 
 
     elseif GameMode.type == "battleRoyale" then
-        if GameMode.tiebreakerActive then
+        --[[if GameMode.tiebreakerActive then
             --check if there is only one team remaining
             if GameMode:CheckWinningTeam() ~= 0 then
                 local winningTeamNumber = GameMode:CheckWinningTeam()
@@ -106,12 +84,12 @@ function GameMode:HeroKilled(hero, attacker, ability)
                 --end game
                 GameRules:SetGameWinner(winningTeamNumber)
                 GameRules:SetSafeToLeave(true)
-            end
-        elseif GameMode.roundActive then
+            end]]
+        if GameMode.roundActive then
             print("[GameMode:HeroKilled] GameMode.roundActive")
             --we have a last team standing
-            if GameMode:CheckWinningTeam() ~= 0 then
-                print("[GameMode:HeroKilled] GameMode:CheckWinningTeam() ~= 0")
+            if GameMode:CheckTeamsRemaining() ~= 0 then
+                print("[GameMode:HeroKilled] not GameMode:CheckTeamsRemaining() == nil")
                 local damageList = {}
                 local damageRanking = {}
                 --assign scores
@@ -165,19 +143,19 @@ function GameMode:HeroKilled(hero, attacker, ability)
                 --if there's other entries with the same value, give them scores too
                 -- this uses a custom sorting function ordering by damageDone, descending
                 local rank = 1
-                for k,v in spairs(damageList, function(t,a,b) return t[b] < t[a] end) do
+                for k,v in GameMode:spairs(damageList, function(t,a,b) return t[b] < t[a] end) do
                     damageRanking[rank] = k 
                     rank = rank + 1
                 end
                 local topDamage = damageList[damageRanking[1]]
-                Notifications:BottomToAll({text="Most damage dealt: ", duration= 5.0, style={["font-size"] = "35px", color = "white"}})
+                --Notifications:BottomToAll({text="Most damage dealt: ", duration= 5.0, style={["font-size"] = "35px", color = "white"}})
                 local firstLine = true
                 for teamNumber = 6, 13 do
                     if GameMode.teams[teamNumber] ~= nil then
                         if damageList[teamNumber] == topDamage then
-                            GameMode.teams[teamNumber].score = GameMode.teams[teamNumber].score + 1
-                            Notifications:BottomToAll({text=string.format("%s, ", GameMode.teamNames[teamNumber]), duration= 5.0, style={["font-size"] = "35px", color = "red"}, continue = not firstLine})
-                            Notifications:BottomToAll({text=string.format("total: %s ", GameMode.teams[teamNumber].score), duration= 5.0, style={["font-size"] = "35px", color = "white"}, continue = true})
+                            --GameMode.teams[teamNumber].score = GameMode.teams[teamNumber].score + 1
+                            --Notifications:BottomToAll({text=string.format("%s    ", GameMode.teamNames[teamNumber]), duration= 5.0, style={["font-size"] = "35px", color = "red"}, continue = not firstLine})
+                            --Notifications:BottomToAll({text=string.format("total: %s ", GameMode.teams[teamNumber].score), duration= 5.0, style={["font-size"] = "35px", color = "white"}, continue = true})
                             firstLine = false
                         end
                     end
@@ -217,19 +195,19 @@ function GameMode:HeroKilled(hero, attacker, ability)
 
                 -- this uses a custom sorting function ordering by kills, descending
                 local rank = 1
-                for k,v in spairs(killsList, function(t,a,b) return t[b] < t[a] end) do
+                for k,v in GameMode:spairs(killsList, function(t,a,b) return t[b] < t[a] end) do
                     killsRanking[rank] = k 
                     rank = rank + 1
                 end
                 local topKills = killsList[killsRanking[1]]
-                Notifications:BottomToAll({text="Most kills: ", duration= 5.0, style={["font-size"] = "35px", color = "white"}})
+                --Notifications:BottomToAll({text="Most kills: ", duration= 5.0, style={["font-size"] = "35px", color = "white"}})
                 firstLine = true
                 for teamNumber = 6, 13 do
                     if GameMode.teams[teamNumber] ~= nil then
                         if killsList[teamNumber] == topKills then
-                            GameMode.teams[teamNumber].score = GameMode.teams[teamNumber].score + 1
-                            Notifications:BottomToAll({text=string.format("%s, ", GameMode.teamNames[teamNumber]), duration= 5.0, style={["font-size"] = "35px", color = "red"}, continue = not firstLine})
-                            Notifications:BottomToAll({text=string.format("total: %s ", GameMode.teams[teamNumber].score), duration= 5.0, style={["font-size"] = "35px", color = "white"}, continue = true})
+                            --GameMode.teams[teamNumber].score = GameMode.teams[teamNumber].score + 1
+                            --Notifications:BottomToAll({text=string.format("%s    ", GameMode.teamNames[teamNumber]), duration= 5.0, style={["font-size"] = "35px", color = "red"}, continue = not firstLine})
+                            --Notifications:BottomToAll({text=string.format("total: %s ", GameMode.teams[teamNumber].score), duration= 5.0, style={["font-size"] = "35px", color = "white"}, continue = true})
                             firstLine = false
                         end
                     end
@@ -239,9 +217,10 @@ function GameMode:HeroKilled(hero, attacker, ability)
 
                 --one for being the last team standing
                 GameMode.roundActive = false
-                local remainingTeamNumber = GameMode:CheckWinningTeam()
+                local remainingTeamNumber = GameMode:CheckTeamsRemaining()
                 GameMode.teams[remainingTeamNumber].score = GameMode.teams[remainingTeamNumber].score + 1
-                Notifications:BottomToAll({text="Last Team Standing: ", duration= 5.0, style={["font-size"] = "35px", color = "white"}})
+                --Notifications:BottomToAll({text="Last Team Standing: ", duration= 5.0, style={["font-size"] = "35px", color = "white"}})
+                Notifications:BottomToAll({text="Winner: ", duration= 5.0, style={["font-size"] = "35px", color = "white"}})
                 Notifications:BottomToAll({text=string.format("%s, ", GameMode.teamNames[remainingTeamNumber]), duration= 5.0, style={["font-size"] = "35px", color = "red"}})
                 Notifications:BottomToAll({text=string.format("total: %s", GameMode.teams[remainingTeamNumber].score), duration= 5.0, style={["font-size"] = "35px", color = "white"}, continue = true})
 
@@ -267,7 +246,7 @@ function GameMode:HeroKilled(hero, attacker, ability)
                 end]]
 
                 --tiebreaker
-                if numWinners > 1 then
+                --[[if numWinners > 1 then
                     Notifications:BottomToAll({text="There's a tie!", duration= 5.0, style={["font-size"] = "45px", color = "red"}})
                     for playerID = 0, GameMode.maxNumPlayers do
                         if PlayerResource:IsValidPlayerID(playerID) then
@@ -285,9 +264,9 @@ function GameMode:HeroKilled(hero, attacker, ability)
                             --start the next round
                             GameMode:RoundStart(winners)
                         end
-                    })
+                    })]]
                 --one winner
-                elseif numWinners == 1 then
+                if numWinners == 1 then
                     for teamNumber = 6, 13 do
                         if winners[teamNumber] ~= nil then
                             GameRules:SetCustomVictoryMessage(string.format("%s wins!", GameMode.teamNames[teamNumber]))
@@ -298,79 +277,140 @@ function GameMode:HeroKilled(hero, attacker, ability)
                     end
                 --no winners
                 else
+                    for teamNumber = 6, 13 do
+                        if GameMode.teams[teamNumber] ~= nil then
+                            local centerVectorEnt = Entities:FindByName(nil, "island_center")
+                            local centerVector = centerVectorEnt:GetAbsOrigin()
+                            AddFOWViewer(teamNumber, centerVector, 10000, 5, false )
+                            --for i = 1, 4 do
+                            if GameMode.teams[teamNumber].sentry ~= nil then
+                                GameMode.teams[teamNumber].sentry:ForceKill(false)
+                                GameMode.teams[teamNumber].sentry = nil
+                            end
+                            --end
+                        end
+                    end
                     --delay 5 seconds
+                    GameMode:RemoveRunes()
                     Timers:CreateTimer({
                         endTime = 5, -- when this timer should first execute, you can omit this if you want it to run first on the next frame
                         callback = function()
                             --start the next round
                             GameMode:RoundStart(GameMode.teams)
+
                         end
                     })
                 end
-            end
-        end
-        -- A timer running every second that starts 5 seconds in the future, respects pauses
-        -- if hero:HasAbility("true_sight") then
-        --     print("[GameMode:HeroKilled] this hero has true_sight")
-        -- else
-        --     print("[GameMode:HeroKilled] this hero does not have true_sight")
-        -- end
-
-        --check if all of the hero's teammates are dead
-        local teammateAlive = false
-        for playerID = 0, GameMode.maxNumPlayers do
-            if GameMode.teams[hero:GetTeamNumber()][playerID] ~= nil then
-                if GameMode.teams[hero:GetTeamNumber()][playerID].hero:IsAlive() then
-                    teammateAlive = true
-                end
-            end
-        end
+            else
+       
 
 
-        --reset true_sight if everyone's dead
-        Timers:CreateTimer({
-                    callback = function()
-                        if teammateAlive then
-                            
-                        else
-                            for playerID = 0, GameMode.maxNumPlayers do
-                                if GameMode.teams[hero:GetTeamNumber()][playerID] ~= nil then
-                                    print("[GameMode:HeroKilled] 1, about to add true_sight")
-                                    GameMode.teams[hero:GetTeamNumber()][playerID].hero:AddAbility("true_sight")
-                                end
-                            end
-                        end
-                    end
-        })
-
-        Timers:CreateTimer(0, function()
-            --check if the hero is alive because this process will continue indefinitely unless stopped
-            if hero:IsAlive() == false then
-            --[[local teammateAlive = false
-            if hero:IsAlive() == false then
+                --check if all of the hero's teammates are dead
+                local teammateAlive = false
                 for playerID = 0, GameMode.maxNumPlayers do
                     if GameMode.teams[hero:GetTeamNumber()][playerID] ~= nil then
                         if GameMode.teams[hero:GetTeamNumber()][playerID].hero:IsAlive() then
                             teammateAlive = true
                         end
                     end
-                end]]
-                if teammateAlive then
-                    return nil
-                else
-                    local centerVectorEnt = Entities:FindByName(nil, "island_center")
-                    local centerVector = centerVectorEnt:GetAbsOrigin()
-                    hero:SetAbsOrigin(centerVector)
-                    AddFOWViewer(hero:GetTeamNumber(), hero:GetAbsOrigin(), 10000, 1, false )
-                    --[[for playerID = 0, GameMode.maxNumPlayers do
-                        if GameMode.teams[hero:GetTeamNumber()][playerID] ~= nil then
-                            print("[GameMode:HeroKilled] about to add true_sight")
-                            GameMode.teams[hero:GetTeamNumber()][playerID].hero:AddAbility("true_sight")
+                end
+
+                --if teammate not alive, run a recurring timer that gives vision
+                Timers:CreateTimer(0, function()
+                    --check if the hero is alive because this process will continue indefinitely unless stopped
+                    if hero:IsAlive() == false then
+                    --[[local teammateAlive = false
+                    if hero:IsAlive() == false then
+                        for playerID = 0, GameMode.maxNumPlayers do
+                            if GameMode.teams[hero:GetTeamNumber()][playerID] ~= nil then
+                                if GameMode.teams[hero:GetTeamNumber()][playerID].hero:IsAlive() then
+                                    teammateAlive = true
+                                end
+                            end
+                        end]]
+                        if teammateAlive then
+                            return nil
+                        else
+                            local centerVectorEnt = Entities:FindByName(nil, "island_center")
+                            local centerVector = centerVectorEnt:GetAbsOrigin()
+                            AddFOWViewer(hero:GetTeamNumber(), centerVector, 10000, 1, false )
+                            return 1.0
                         end
-                    end]]
-                    return 1.0
+                    else
+                        return nil
+                    end
+                end)
+
+                --if teammate not alive, place sentry once
+                if not teammateAlive then
+                    GameMode.teams[hero:GetTeamNumber()].sentry = CreateUnitByName("npc_dota_sentry_wards", Vector(-234, -45, 128), true, hero, hero, hero:GetTeamNumber())
+                    --wards are not invisible by default
+                    GameMode.teams[hero:GetTeamNumber()].sentry:AddNewModifier(nil, nil, "modifier_invisible", {})
+                    --for playerID = 0, GameMode.maxNumPlayers do
+                        --if GameMode.teams[hero:GetTeamNumber()][playerID] ~= nil then
+                            --print("[GameMode:HeroKilled] about to add true_sight")
+                            --GameMode.teams[hero:GetTeamNumber()][playerID].hero:AddAbility("true_sight")
+                            --print("[GameMode:HeroKilled] teammateAlive false")
+                            --center
+                            --local sentry_unit = CreateUnitByName("dummy", Vector(-234, -45, 128), true, hero, hero, hero:GetTeamNumber())
+                            --GameMode.teams[hero:GetTeamNumber()].sentries[1] = CreateItem("item_ward_sentry", sentry_unit, sentry_unit)
+                            
+                            --print("[GameMode:OnHeroInGame] item: " .. tostring(item))
+                            --sentry_unit:AddItem(GameMode.teams[hero:GetTeamNumber()].sentries[1])
+                            --top left hill
+                            --center.x = -1641
+                            --center.y = 1162.5
+                            --center.z = 384
+                            --sentry_unit:SetCursorPosition(Vector(-1637, 1154, 384))
+                            --GameMode.teams[hero:GetTeamNumber()].sentries[1]:OnSpellStart()
+                            --[[print("[GameMode:HeroKilled] hero's additional owned units: ")
+                            PrintTable(GameMode.teams[hero:GetTeamNumber()][playerID].hero:GetAdditionalOwnedUnits())
+                            GameMode.teams[hero:GetTeamNumber()].sentries[2] = CreateItem("item_ward_sentry", sentry_unit, sentry_unit)
+                            --print("[GameMode:OnHeroInGame] item: " .. tostring(item))
+                            sentry_unit:AddItem(GameMode.teams[hero:GetTeamNumber()].sentries[2])
+                            --top right hill
+                            --center.x = 914
+                            --center.y = 1158
+                            --center.z = 384
+                            sentry_unit:SetCursorPosition(Vector(914, 1158, 384))
+                            GameMode.teams[hero:GetTeamNumber()].sentries[2]:OnSpellStart()
+                            GameMode.teams[hero:GetTeamNumber()].sentries[3] = CreateItem("item_ward_sentry", sentry_unit, sentry_unit)
+                            --print("[GameMode:OnHeroInGame] item: " .. tostring(item))
+                            sentry_unit:AddItem(GameMode.teams[hero:GetTeamNumber()].sentries[3])
+                            --bottom left hill
+                            --center.x = -1643
+                            --center.y = -1397
+                            --center.z = 384
+                            sentry_unit:SetCursorPosition(Vector(-1643,-1397, 384))
+                            GameMode.teams[hero:GetTeamNumber()].sentries[3]:OnSpellStart()
+                            GameMode.teams[hero:GetTeamNumber()].sentries[4] = CreateItem("item_ward_sentry", sentry_unit, sentry_unit)
+                            --print("[GameMode:OnHeroInGame] item: " .. tostring(item))
+                            sentry_unit:AddItem(GameMode.teams[hero:GetTeamNumber()].sentries[4])
+                            --bottom right hill
+                            --center.x = 909
+                            --center.y = -1389
+                            --center.z = 384
+                            sentry_unit:SetCursorPosition(Vector(909, -1389, 384))
+                            GameMode.teams[hero:GetTeamNumber()].sentries[4]:OnSpellStart()
+                            sentry_unit:ForceKill(false)]]
+                            --place wards on four hills
+                            --increase range
+                            --remove duration (attribute permanent)
+                            --respawn every 10000 seconds
+                            --kill wards when round finishes
+
+                            --save sentry into table for team
+                            --kill by table
+                            --make dummy unit invulnerable
+                        --end
+                    --end
                 end
             end
-        end)
+        end
     end
 end
+
+--when someone dies
+--check if teammate is alive
+--if not, give vision and true sight
+--check if there is a winning team

@@ -64,6 +64,7 @@
     <!-- <CustomUIElement type="HeroSelection"       layoutfile="file://{resources}/layout/custom_game/multiteam_hero_select_overlay.xml" /> -->
     <!-- <CustomUIElement type="Hud"					layoutfile="file://{resources}/layout/custom_game/custom_hero_select.xml" /> -->
     <CustomUIElement type="Hud"					layoutfile="file://{resources}/layout/custom_game/select.xml" />
+    <CustomUIElement type="Hud"					layoutfile="file://{resources}/layout/custom_game/select_cookie_god.xml" />
 
     <!-- From Overthrow.
 

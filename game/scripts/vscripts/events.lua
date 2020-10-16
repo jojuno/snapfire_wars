@@ -25,12 +25,55 @@ end
 function GameMode:OnNPCSpawned(keys)
   DebugPrint("[BAREBONES] NPC Spawned")
   DebugPrintTable(keys)
-
+  print("[GameMode:OnNPCSpawned] keys: ")
+  PrintTable(keys)
   local npc = EntIndexToHScript(keys.entindex)
+
+  --add items if this is first spawn after cookie god
   
-  npc:AddNewModifier(nil, nil, "modifier_specially_deniable", {})
-  npc:AddNewModifier(nil, nil, "modifier_magic_immune", {duration = 2})
-  npc:AddNewModifier(nil, nil, "modifier_attack_immune", {duration = 2})
+  
+
+  --if player is a cookie god
+  --replaceherowith original hero via .heroname
+  if GameMode.cookieGods[npc:GetUnitName()] ~= nil then
+    local npc_playerID = npc:GetPlayerID()
+    if GameMode.teams[PlayerResource:GetTeam(npc_playerID)]["players"][npc_playerID].cookieGodActive then
+
+      print("[GameMode:OnNPCSpawned] npc_playerID: " .. npc_playerID)
+      --items are initially not present in first spawn of new hero
+      local newHero = PlayerResource:ReplaceHeroWith(npc_playerID, GameMode.teams[PlayerResource:GetTeam(npc_playerID)]["players"][npc_playerID].heroName, PlayerResource:GetGold(npc_playerID), 0)
+      newHero:ForceKill(false)
+      --delay by a moment
+      Timers:CreateTimer({
+        endTime = 0.06, -- when this timer should first execute, you can omit this if you want it to run first on the next frame
+        callback = function()
+          newHero:RespawnHero(false, false)
+        end
+      })
+      
+      
+      GameMode.teams[PlayerResource:GetTeam(npc_playerID)]["players"][npc_playerID].cookieGodActive = false
+
+      --update GameMode table
+      --add all items to 
+      --add all items
+      GameMode.teams[PlayerResource:GetTeam(npc_playerID)]["players"][npc_playerID].hero = newHero
+    end
+    --cookie god spawn
+    --cookieGodSpawn = true
+    --cookie god dies
+    --respawn time
+    --warlock spawns
+    --warlock plays
+    --warlock dies
+    --respawn time
+    --warlock spawns again
+  end
+
+
+  --npc:AddNewModifier(nil, nil, "modifier_specially_deniable", {})
+  --npc:AddNewModifier(nil, nil, "modifier_magic_immune", {duration = 2})
+  --npc:AddNewModifier(nil, nil, "modifier_attack_immune", {duration = 2})
 
 end
 
@@ -268,7 +311,14 @@ function GameMode:OnEntityKilled( keys )
   -- Put code here to handle when an entity gets killed
   if killed_unit:IsRealHero() then 
     DebugPrint("[BAREBONES] Hero killed, calling HeroKilled function.")
-    GameMode:HeroKilled(killed_unit, killer_unit, killing_ability)
+    if GameMode.mapName == "what_the_kuck" then
+      print("[GameMode:OnEntityKilled] calling 'GameMode:HeroKilledWhatTheKuck'")
+      
+      GameMode:HeroKilledWhatTheKuck(killed_unit, killer_unit, killing_ability)
+
+    else
+      GameMode:HeroKilled(killed_unit, killer_unit, killing_ability)
+    end
   end
 end
 
@@ -277,10 +327,10 @@ end
 function GameMode:PlayerConnect(keys)
   DebugPrint('[BAREBONES] PlayerConnect')
   DebugPrintTable(keys)
-
 end
 
 -- This function is called once when the player fully connects and becomes "Ready" during Loading
+-- doesn't get called for bots
 function GameMode:OnConnectFull(keys)
   DebugPrint('[BAREBONES] OnConnectFull')
   DebugPrintTable(keys)
@@ -290,6 +340,25 @@ function GameMode:OnConnectFull(keys)
   
   -- The Player ID of the joining player
   local playerID = ply:GetPlayerID()
+  local teamNum = PlayerResource:GetTeam(playerID)
+
+  --[[if GameMode.teams[teamNum] == nil then
+    print("[GameMode:OnHeroInGame] making a new entry in the 'teams' table")
+    GameMode.teams[teamNum] = {}
+    GameMode.teams[teamNum]["players"] = {}
+    GameMode.teams[teamNum].score = 0
+    GameMode.teams[teamNum].remaining = true
+    GameMode.teams[teamNum].totalDamageDealt = 0
+    GameMode.teams[teamNum].sentry = nil
+    --deprecate
+    GameMode.teams[teamNum].wanted = false
+  end
+  GameMode.teams[teamNum]["players"][playerID] = {}
+  GameMode.teams[teamNum]["players"][playerID].hero = PlayerResource:GetSelectedHeroEntity(playerID)
+  GameMode.teams[teamNum]["players"][playerID].totalDamageDealt = 0
+  GameMode.teams[teamNum]["players"][playerID].totalKills = 0
+
+  GameMode.numPlayers = GameMode.numPlayers + 1]]
 end
 
 -- This function is called whenever illusions are created and tells you which was/is the original entity
