@@ -4,7 +4,7 @@ Custom game #2 in Dota 2
 <br>
 Let it bang!
 
-Latest update: 10/17/2020
+Latest update: 10/16/2020
 -balance changes
 --potion heals for 800
 --health lowered to 1400
