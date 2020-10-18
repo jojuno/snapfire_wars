@@ -1,5 +1,5 @@
 
-[![Demo](http://img.youtube.com/vi/wRtH1h_GBA8/0.jpg)](http://www.youtube.com/watch?v=wRtH1h_GBA8 "Demo")
+[![Demo](http://img.youtube.com/vi/wRtH1h_GBA8/0.jpg)](http://www.youtube.com/watch?v=wRtH1h_GBA8 "Demo")  
 Custom game #2 in Dota 2
 <br>
 Let it bang!
