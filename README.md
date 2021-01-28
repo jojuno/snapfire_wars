@@ -4,6 +4,8 @@ Custom game #2 in Dota 2
 <br>
 Let it bang!
 
+![gameplay_gif](https://github.com/jojuno/snapfire_wars/blob/master/snapfire_wars.gif)
+
 Latest update: 10/16/2020  
 -balance changes  
 --potion heals for 800  
